@@ -214,6 +214,150 @@ streamlit run app/streamlit_app.py
 - ✅ **SFT 데이터셋 자동 생성**: 질문 템플릿에서 실제 검색 결과 기반 데이터셋 생성
 - ✅ **Hugging Face Jobs 기반 학습**: 클라우드 GPU에서 LoRA/QLoRA 학습
 
+## 📊 결과 예시
+
+### 검색 질문
+```
+"transformer attention mechanism"
+```
+
+### 1. Evidence Table (Top-K)
+
+| 순위 | 제목 | 저자 | 연도 | 저널/학회 | 연구 유형 | 총점 | URL |
+|------|------|------|------|-----------|-----------|------|-----|
+| 1 | Attention Is All You Need | Vaswani et al. | 2017 | NeurIPS | theoretical | 0.892 | [링크] |
+| 2 | BERT: Pre-training of Deep Bidirectional Transformers | Devlin et al. | 2019 | NAACL | experimental | 0.856 | [링크] |
+| 3 | GPT-3: Language Models are Few-Shot Learners | Brown et al. | 2020 | NeurIPS | experimental | 0.834 | [링크] |
+| 4 | RoBERTa: A Robustly Optimized BERT Pretraining Approach | Liu et al. | 2019 | arXiv | experimental | 0.821 | [링크] |
+| 5 | The Illustrated Transformer | Alammar | 2018 | Blog | other | 0.798 | [링크] |
+
+### 2. Ranking Breakdown (랭킹 근거)
+
+| 순위 | 제목 | 총점 | 쿼리 매칭 | 최신성 | 연구 유형 | 증거 완성도 | 중복 페널티 |
+|------|------|------|-----------|--------|-----------|-------------|-------------|
+| 1 | Attention Is All You Need | 0.892 | 0.95 | 0.70 | 0.50 | 0.90 | 0.00 |
+| 2 | BERT: Pre-training... | 0.856 | 0.88 | 0.80 | 0.70 | 0.95 | 0.00 |
+| 3 | GPT-3: Language Models... | 0.834 | 0.82 | 0.90 | 0.70 | 0.98 | 0.00 |
+
+**점수 구성 요소 설명:**
+- **쿼리 매칭 (0.4)**: 제목, 초록, 키워드에서 검색어 매칭 정도
+- **최신성 (0.2)**: 논문 발표 연도 (최근일수록 높은 점수)
+- **연구 유형 (0.2)**: 메타분석 > 체계적 문헌고찰 > 무작위 대조 시험 > 실험 연구
+- **증거 완성도 (0.15)**: 제목, 초록, 저자, 연도, 저널, 키워드, DOI 등 완성도
+- **중복 페널티 (-0.05)**: 중복 논문에 대한 감점
+
+### 3. 시각화
+
+#### 연도별 트렌드
+```
+연도별 논문 수 분포를 보여주는 차트
+- 2017년: 5개
+- 2018년: 8개
+- 2019년: 12개
+- 2020년: 15개
+- 2021년: 18개
+- 2022년: 20개
+- 2023년: 22개
+- 2024년: 10개
+```
+
+#### 저널/학회 분포
+```
+상위 저널/학회:
+- NeurIPS: 8개
+- arXiv: 12개
+- ICML: 5개
+- ACL: 4개
+- ICLR: 3개
+```
+
+#### 연구 유형 분포
+```
+- 실험 연구: 60%
+- 이론 연구: 25%
+- 체계적 문헌고찰: 10%
+- 기타: 5%
+```
+
+### 4. 답변 요약 (Small LLM 생성)
+
+**검색 질문**: "transformer attention mechanism"
+
+**검색 결과 요약**:
+- 총 10개의 논문이 검색되었습니다.
+- 소스별 분포: arxiv(8), pubmed(2)
+- 연도 범위: 2017-2024
+- 평균 랭킹 점수: 0.823
+
+**주요 발견**:
+- 상위 논문들은 주로 NeurIPS, arXiv에서 발표되었습니다.
+- 연구 유형 분포: 실험 연구(60%), 이론 연구(25%), 체계적 문헌고찰(10%)
+- 최근 트렌드: 2020년 이후 transformer 기반 모델 연구가 급증
+- 핵심 논문: "Attention Is All You Need" (2017)이 가장 높은 점수를 받았으며, 쿼리 매칭 점수가 0.95로 매우 높습니다.
+
+**Evidence Table의 논문들에 근거하여**:
+1. Attention 메커니즘은 2017년 Vaswani et al.의 논문에서 처음 제안되었습니다.
+2. 이후 BERT, GPT-3 등 다양한 모델에서 활용되었습니다.
+3. 최근 연구들은 attention 메커니즘의 효율성과 확장성에 집중하고 있습니다.
+
+---
+
+### 실제 사용 예시 (Python API)
+
+```python
+from src.pipeline import PaperSearchPipeline
+
+# 파이프라인 초기화
+pipeline = PaperSearchPipeline(use_cache=True)
+
+# 검색 및 랭킹
+results = pipeline.search(
+    query="transformer attention mechanism",
+    sources=["arxiv", "pubmed"],
+    max_results=50,
+    top_k=10
+)
+
+# Evidence Table 출력
+print("📋 Evidence Table (Top-10)")
+for i, (paper, breakdown) in enumerate(zip(results["papers"], results["breakdowns"]), 1):
+    print(f"\n[{i}] {paper['title']}")
+    print(f"    점수: {breakdown.total_score:.3f}")
+    print(f"    - 쿼리 매칭: {breakdown.query_match:.3f}")
+    print(f"    - 최신성: {breakdown.recency:.3f}")
+    print(f"    - 연구 유형: {breakdown.study_type_priority:.3f}")
+    print(f"    URL: {paper['url']}")
+
+# 차트 생성
+charts = results["charts"]
+# charts["year_trend"].show()  # Plotly 차트 표시
+# charts["venue_distribution"].show()
+```
+
+### Streamlit 앱 화면 예시
+
+```
+┌─────────────────────────────────────────────────────────┐
+│  📚 Trust-aware Paper Searcher                        │
+├─────────────────────────────────────────────────────────┤
+│                                                         │
+│  검색 질문: [transformer attention mechanism    ] [🔍] │
+│                                                         │
+│  📊 검색 결과 요약                                      │
+│  총 논문 수: 10  │ 소스별 분포: arxiv(8), pubmed(2)   │
+│                                                         │
+│  📋 Evidence Table (Top-K)                             │
+│  [테이블 표시]                                          │
+│                                                         │
+│  🔍 랭킹 근거 (Ranking Breakdown)                       │
+│  [점수 구성 요소 테이블]                                │
+│                                                         │
+│  📈 시각화                                              │
+│  [연도별 트렌드 차트]  [저널 분포 차트]                │
+│                                                         │
+└─────────────────────────────────────────────────────────┘
+```
+
 ## 핵심 원칙
 
 1. **지식 단정 금지**: 검색 결과(증거) 없이 주장하지 않음
