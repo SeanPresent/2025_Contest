@@ -1,6 +1,20 @@
 # Trust-aware Paper Searcher
 
+[![Python 3.8+](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Hugging Face](https://img.shields.io/badge/Hugging%20Face-Jobs-orange)](https://huggingface.co/docs/hub/spaces)
+
 Small LLM 기반 논문 검색 및 랭킹 시스템
+
+## 📑 목차
+
+- [프로젝트 소개](#-프로젝트-소개)
+- [빠른 시작](#빠른-시작-hugging-face-jobs-중심)
+- [주요 기능](#주요-기능)
+- [결과 예시](#-결과-예시)
+- [핵심 원칙](#핵심-원칙)
+- [아키텍처](#아키텍처)
+- [문서](#문서)
 
 ## 📖 프로젝트 소개
 
@@ -408,4 +422,41 @@ charts = results["charts"]
 - 로컬 GPU나 venv 설정이 필요 없습니다
 - 모든 작업(데이터셋 생성, 학습, 평가)은 HF Jobs에서 실행됩니다
 - 로컬 개발은 선택사항입니다 (Streamlit 앱 테스트 등)
+
+## 🚀 현재 상태
+
+- ✅ **데이터 수집**: arXiv/PubMed API 연동 완료
+- ✅ **정규화 및 랭킹**: 피처 기반 스코어링 시스템 구현 완료
+- ✅ **시각화**: 연도별 트렌드, 저널 분포 차트 생성 완료
+- ✅ **SFT 데이터셋 생성**: 자동 데이터셋 생성 스크립트 완료
+- 🔄 **모델 학습**: Hugging Face Jobs를 통한 학습 준비 완료
+- 📝 **평가 시스템**: Format compliance, Evidence inclusion, Hallucination detection 구현 완료
+
+## 📝 라이선스
+
+이 프로젝트는 MIT 라이선스 하에 배포됩니다. 자세한 내용은 `LICENSE` 파일을 참조하세요.
+
+## 🤝 기여
+
+기여를 환영합니다! 이슈를 제기하거나 Pull Request를 보내주세요.
+
+## ❓ 문제 해결
+
+### 자주 묻는 질문 (FAQ)
+
+**Q: 로컬에서 실행하려면?**  
+A: `pip install -r requirements.txt` 후 `streamlit run app/streamlit_app.py` 실행
+
+**Q: HF Jobs에서 실행하려면?**  
+A: `scripts/train_sft.py`를 실행하여 job configuration을 생성한 후 `hf_jobs` MCP 도구로 제출
+
+**Q: PubMed API 에러가 발생하면?**  
+A: `NCBI_EMAIL` 환경 변수가 설정되어 있는지 확인하세요. PubMed API는 이메일 주소가 필요합니다.
+
+**Q: 데이터셋 생성이 느리면?**  
+A: `--max_results` 파라미터를 줄이거나, 캐싱을 활용하세요. arXiv API는 3초, PubMed는 1초 간격으로 요청합니다.
+
+## 📧 문의
+
+프로젝트에 대한 질문이나 제안사항이 있으시면 이슈를 생성해주세요.
 
