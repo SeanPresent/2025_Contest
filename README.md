@@ -42,7 +42,10 @@ Small LLM 기반 논문 검색 및 랭킹 시스템
 
 ### 🛠️ 기술 스택
 
-- **LLM**: Qwen/Qwen2.5-0.5B (Small LLM, LoRA/QLoRA fine-tuning)
+- **LLM**: **Qwen/Qwen2.5-0.5B** (Small LLM, 약 5억 파라미터)
+  - 베이스 모델: [Qwen2.5-0.5B](https://huggingface.co/Qwen/Qwen2.5-0.5B)
+  - Fine-tuning: LoRA/QLoRA를 사용한 효율적 학습
+  - 용도: 검색 결과 요약 및 근거 기반 답변 생성
 - **Training**: Hugging Face Jobs (클라우드 GPU)
 - **Data Sources**: arXiv API, PubMed Entrez API
 - **Ranking**: 피처 기반 스코어링 시스템
@@ -51,12 +54,12 @@ Small LLM 기반 논문 검색 및 랭킹 시스템
 
 ### 🎓 학습 목표
 
-Small LLM을 학습시켜 다음을 수행하도록 합니다:
+**Qwen/Qwen2.5-0.5B** Small LLM을 학습시켜 다음을 수행하도록 합니다:
 
 - 사용자 질문을 분석하여 검색 계획 수립
-- Evidence Table 형식으로 논문 정리
+- **간결한 요약 (1-2줄)** 생성
+- **Evidence Table의 논문들을 근거로 제시**
 - Ranking Breakdown을 포함한 투명한 랭킹 근거 제공
-- 차트 설명과 함께 검색 결과 요약 생성
 
 ## 프로젝트 구조
 
@@ -283,22 +286,32 @@ streamlit run app/streamlit_app.py
 
 **검색 질문**: "transformer attention mechanism"
 
-**검색 결과 요약**:
-- 총 10개의 논문이 검색되었습니다.
-- 소스별 분포: arxiv(8), pubmed(2)
+#### 📝 결과 요약 (Qwen/Qwen2.5-0.5B 생성)
+
+**요약 (1-2줄)**:
+Transformer attention mechanism은 2017년 "Attention Is All You Need" 논문에서 제안된 이후, BERT, GPT-3 등 대규모 언어 모델의 핵심 구성 요소로 발전했습니다. 최근 연구들은 attention의 효율성과 확장성에 집중하고 있으며, 2020년 이후 관련 연구가 급증했습니다.
+
+#### 🔍 근거 (Evidence Table 기반)
+
+**근거 제시**:
+1. **"Attention Is All You Need" (Vaswani et al., 2017, NeurIPS)** - 점수: 0.892
+   - 쿼리 매칭: 0.95 (매우 높음)
+   - Transformer 아키텍처의 핵심인 self-attention 메커니즘을 처음 제안
+   - [논문 링크]
+
+2. **"BERT: Pre-training of Deep Bidirectional Transformers" (Devlin et al., 2019, NAACL)** - 점수: 0.856
+   - Bidirectional attention을 활용한 사전 학습 모델
+   - [논문 링크]
+
+3. **"GPT-3: Language Models are Few-Shot Learners" (Brown et al., 2020, NeurIPS)** - 점수: 0.834
+   - 대규모 autoregressive 모델에서 attention의 확장성 입증
+   - [논문 링크]
+
+**통계 정보**:
+- 총 검색 논문: 10개 (arxiv: 8, pubmed: 2)
 - 연도 범위: 2017-2024
-- 평균 랭킹 점수: 0.823
-
-**주요 발견**:
-- 상위 논문들은 주로 NeurIPS, arXiv에서 발표되었습니다.
-- 연구 유형 분포: 실험 연구(60%), 이론 연구(25%), 체계적 문헌고찰(10%)
-- 최근 트렌드: 2020년 이후 transformer 기반 모델 연구가 급증
-- 핵심 논문: "Attention Is All You Need" (2017)이 가장 높은 점수를 받았으며, 쿼리 매칭 점수가 0.95로 매우 높습니다.
-
-**Evidence Table의 논문들에 근거하여**:
-1. Attention 메커니즘은 2017년 Vaswani et al.의 논문에서 처음 제안되었습니다.
-2. 이후 BERT, GPT-3 등 다양한 모델에서 활용되었습니다.
-3. 최근 연구들은 attention 메커니즘의 효율성과 확장성에 집중하고 있습니다.
+- 주요 저널: NeurIPS (8개), arXiv (12개)
+- 연구 유형: 실험 연구 (60%), 이론 연구 (25%)
 
 ---
 
@@ -343,13 +356,25 @@ charts = results["charts"]
 │                                                         │
 │  검색 질문: [transformer attention mechanism    ] [🔍] │
 │                                                         │
-│  📊 검색 결과 요약                                      │
-│  총 논문 수: 10  │ 소스별 분포: arxiv(8), pubmed(2)   │
 │                                                         │
-│  📋 Evidence Table (Top-K)                             │
+│  📝 결과 요약 (Small LLM 생성)                         │
+│  ┌─────────────────────────────────────────────────┐  │
+│  │ Transformer attention mechanism은 2017년...     │  │
+│  │ [1-2줄 요약]                                     │  │
+│  └─────────────────────────────────────────────────┘  │
+│                                                         │
+│  🔍 근거 (Evidence Table)                              │
+│  ┌─────────────────────────────────────────────────┐  │
+│  │ 1. "Attention Is All You Need" (2017) - 0.892  │  │
+│  │ 2. "BERT: Pre-training..." (2019) - 0.856      │  │
+│  │ 3. "GPT-3: Language Models..." (2020) - 0.834 │  │
+│  │ [상위 논문 목록]                                 │  │
+│  └─────────────────────────────────────────────────┘  │
+│                                                         │
+│  📋 Evidence Table (전체 Top-K)                        │
 │  [테이블 표시]                                          │
 │                                                         │
-│  🔍 랭킹 근거 (Ranking Breakdown)                       │
+│  🔍 랭킹 근거 (Ranking Breakdown)                     │
 │  [점수 구성 요소 테이블]                                │
 │                                                         │
 │  📈 시각화                                              │
